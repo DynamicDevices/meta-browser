@@ -1,0 +1,233 @@
+diff -ur chromium-39.0.2171.95.org/cef/cef.gyp chromium-39.0.2171.95/cef/cef.gyp
+--- chromium-39.0.2171.95.org/cef/cef.gyp	2015-04-26 14:12:00.694555357 +0100
++++ chromium-39.0.2171.95/cef/cef.gyp	2015-04-26 14:14:59.630552890 +0100
+@@ -21,194 +21,6 @@
+   ],
+   'targets': [
+     {
+-      'target_name': 'cefclient',
+-      'type': 'executable',
+-      'mac_bundle': 1,
+-      'msvs_guid': '6617FED9-C5D4-4907-BF55-A90062A6683F',
+-      'dependencies': [
+-        'libcef_dll_wrapper',
+-      ],
+-      'defines': [
+-        'USING_CEF_SHARED',
+-      ],
+-      'include_dirs': [
+-        '.',
+-        # cefclient includes are relative to the tests directory to make
+-        # creation of binary releases easier.
+-        'tests'
+-      ],
+-      'sources': [
+-        '<@(includes_common)',
+-        '<@(includes_wrapper)',
+-        '<@(cefclient_sources_common)',
+-      ],
+-      'mac_bundle_resources': [
+-        '<@(cefclient_bundle_resources_mac)',
+-      ],
+-      'mac_bundle_resources!': [
+-        # TODO(mark): Come up with a fancier way to do this (mac_info_plist?)
+-        # that automatically sets the correct INFOPLIST_FILE setting and adds
+-        # the file to a source group.
+-        'tests/cefclient/mac/Info.plist',
+-      ],
+-      'xcode_settings': {
+-        'INFOPLIST_FILE': 'tests/cefclient/mac/Info.plist',
+-        # Necessary to avoid an "install_name_tool: changing install names or
+-        # rpaths can't be redone" error.
+-        'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'],
+-      },
+-      'conditions': [
+-        ['OS=="win"', {
+-          'dependencies': [
+-            '<(DEPTH)/content/content_shell_and_tests.gyp:content_shell_crash_service',
+-            'cef_sandbox',
+-            'libcef',
+-          ],
+-          'defines': [
+-            'CEF_USE_ATL',
+-            'CEF_USE_SANDBOX',
+-          ],
+-          'configurations': {
+-            'Debug_Base': {
+-              'msvs_settings': {
+-                'VCLinkerTool': {
+-                  'LinkIncremental': '<(msvs_large_module_debug_link_mode)',
+-                },
+-              },
+-            },
+-          },
+-          'msvs_settings': {
+-            'VCLinkerTool': {
+-              # Set /SUBSYSTEM:WINDOWS.
+-              'SubSystem': '2',
+-            },
+-            'VCManifestTool': {
+-              'AdditionalManifestFiles': [
+-                'tests/cefclient/cefclient.exe.manifest',
+-              ],
+-            },
+-          },
+-          'link_settings': {
+-            'libraries': [
+-              '-lcomctl32.lib',
+-              '-lshlwapi.lib',
+-              '-lrpcrt4.lib',
+-              '-lopengl32.lib',
+-              '-lglu32.lib',
+-            ],
+-          },
+-          'sources': [
+-            '<@(includes_win)',
+-            '<@(cefclient_sources_win)',
+-          ],
+-        }],
+-        [ 'OS=="mac"', {
+-          'product_name': 'cefclient',
+-          'dependencies': [
+-            'cef_framework',
+-            'cefclient_helper_app',
+-          ],
+-          'variables': {
+-            'PRODUCT_NAME': 'cefclient',
+-          },
+-          'copies': [
+-            {
+-              # Add the helper app.
+-              'destination': '<(PRODUCT_DIR)/<(PRODUCT_NAME).app/Contents/Frameworks',
+-              'files': [
+-                '<(PRODUCT_DIR)/<(PRODUCT_NAME) Helper.app',
+-              ],
+-            },
+-          ],
+-          'postbuilds': [
+-            {
+-              'postbuild_name': 'Copy <(framework_name).framework',
+-              'action': [
+-                '../build/mac/copy_framework_unversioned.sh',
+-                '${BUILT_PRODUCTS_DIR}/<(framework_name).framework',
+-                '${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Frameworks',
+-              ],
+-            },
+-            {
+-              'postbuild_name': 'Fix Framework Link',
+-              'action': [
+-                'install_name_tool',
+-                '-change',
+-                '@executable_path/<(framework_name)',
+-                '@executable_path/../Frameworks/<(framework_name).framework/<(framework_name)',
+-                '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
+-              ],
+-            },
+-            {
+-              'postbuild_name': 'Copy locale Resources',
+-              'action': [
+-                'cp',
+-                '-Rf',
+-                '${BUILT_PRODUCTS_DIR}/locales/',
+-                '${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Frameworks/<(framework_name).framework/Resources/'
+-              ],
+-            },
+-            {
+-              # Modify the Info.plist as needed.
+-              'postbuild_name': 'Tweak Info.plist',
+-              'action': ['../build/mac/tweak_info_plist.py',
+-                         '--scm=1'],
+-            },
+-            {
+-              # This postbuid step is responsible for creating the following
+-              # helpers:
+-              #
+-              # cefclient Helper EH.app and cefclient Helper NP.app are created
+-              # from cefclient Helper.app.
+-              #
+-              # The EH helper is marked for an executable heap. The NP helper
+-              # is marked for no PIE (ASLR).
+-              'postbuild_name': 'Make More Helpers',
+-              'action': [
+-                '../build/mac/make_more_helpers.sh',
+-                'Frameworks',
+-                'cefclient',
+-              ],
+-            },
+-          ],
+-          'link_settings': {
+-            'libraries': [
+-              '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
+-              '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+-            ],
+-          },
+-          'sources': [
+-            '<@(includes_mac)',
+-            '<@(cefclient_sources_mac)',
+-          ],
+-        }],
+-        [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
+-          'dependencies': [
+-            'gtk',
+-            'gtkglext',
+-            'libcef',
+-          ],
+-          'link_settings': {
+-            'libraries': [
+-              '-lX11',
+-            ],
+-          },
+-          'sources': [
+-            '<@(includes_linux)',
+-            '<@(cefclient_sources_linux)',
+-          ],
+-          'copies': [
+-            {
+-              'destination': '<(PRODUCT_DIR)/files',
+-              'files': [
+-                '<@(cefclient_bundle_resources_linux)',
+-              ],
+-            },
+-          ],
+-        }],
+-      ],
+-    },
+-    {
+       'target_name': 'cefsimple',
+       'type': 'executable',
+       'mac_bundle': 1,
+@@ -1698,27 +1510,6 @@
+             ],
+           },
+         },
+-        {
+-          'target_name': 'gtkglext',
+-          'type': 'none',
+-          'variables': {
+-            # gtkglext is required by the cefclient OSR example.
+-            'gtk_packages': 'gtkglext-1.0',
+-          },
+-          'direct_dependent_settings': {
+-            'cflags': [
+-              '<!@(pkg-config --cflags <(gtk_packages))',
+-            ],
+-          },
+-          'link_settings': {
+-            'ldflags': [
+-              '<!@(pkg-config --libs-only-L --libs-only-other <(gtk_packages))',
+-            ],
+-            'libraries': [
+-              '<!@(pkg-config --libs-only-l <(gtk_packages))',
+-            ],
+-          },
+-        },
+       ],
+     }],  # OS=="linux" or OS=="freebsd" or OS=="openbsd"
+     [ 'OS=="win"', {
+@@ -1740,4 +1531,4 @@
+       ],
+     }],  # OS=="win"
+   ],
+-}
+\ No newline at end of file
++}

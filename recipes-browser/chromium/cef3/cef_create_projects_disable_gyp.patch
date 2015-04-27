@@ -1,0 +1,13 @@
+diff -ur chromium-39.0.2171.95.org/cef/tools/gclient_hook.py chromium-39.0.2171.95/cef/tools/gclient_hook.py
+--- chromium-39.0.2171.95.org/cef/tools/gclient_hook.py	2015-04-26 14:05:30.866560734 +0100
++++ chromium-39.0.2171.95/cef/tools/gclient_hook.py	2015-04-26 14:08:46.390558037 +0100
+@@ -24,6 +24,9 @@
+             '--patch-config', 'patch/patch.cfg' ]
+ RunAction(cef_dir, patcher)
+ 
++print "\nGenerating CEF project files... *** disabled ***"
++quit()
++
+ print "\nGenerating CEF project files..."
+ 
+ # depot_tools currently bundles VS2013 Express Update 1 which causes linker

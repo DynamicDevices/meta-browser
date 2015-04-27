@@ -19,8 +19,12 @@
 DESCRIPTION = "Chromium browser"
 LICENSE = "BSD"
 DEPENDS = "xz-native pciutils pulseaudio cairo nss zlib-native libav libgnome-keyring cups ninja-native gconf libexif pango libdrm"
+
+CHROMIUM_PV ?= "${PV}"
+CHROMIUM_P  ?= "chromium-${CHROMIUM_PV}"
+
 SRC_URI = "\
-        http://gsdview.appspot.com/chromium-browser-official/${P}.tar.xz \
+ 	http://gsdview.appspot.com/chromium-browser-official/${CHROMIUM_P}.tar.xz \
         file://include.gypi \
         file://oe-defaults.gypi \
         ${@bb.utils.contains('PACKAGECONFIG', 'component-build', 'file://component-build.gypi', '', d)} \
@@ -129,6 +133,7 @@ EXTRA_OEGYP =	" \
 	${@bb.utils.contains('PACKAGECONFIG', 'component-build', '-I ${WORKDIR}/component-build.gypi', '', d)} \
 	-f ninja \
 "
+
 ARMFPABI_armv7a = "${@bb.utils.contains('TUNE_FEATURES', 'callconvention-hard', 'arm_float_abi=hard', 'arm_float_abi=softfp', d)}"
 
 CHROMIUM_EXTRA_ARGS ?= " \
@@ -158,12 +163,16 @@ python() {
 do_configure() {
 	cd ${S}
 	GYP_DEFINES="${GYP_DEFINES}" export GYP_DEFINES
+
 	# replace LD with CXX, to workaround a possible gyp issue?
 	LD="${CXX}" export LD
 	CC="${CC}" export CC
 	CXX="${CXX}" export CXX
-	CC_host="${BUILD_CC}" export CC_host
-	CXX_host="${BUILD_CXX}" export CXX_host
+        CC_host="${BUILD_CC}" export CC_host
+        CXX_host="${BUILD_CXX}" export CXX_host
+#	CC_host="${CCACHE}${HOST_PREFIX}gcc ${HOST_CC_ARCH}" export CC_host
+#	CXX_host="${CCACHE}${HOST_PREFIX}g++ ${HOST_CC_ARCH}" export CXX_host
+
 	build/gyp_chromium --depth=. ${EXTRA_OEGYP}
 }
 

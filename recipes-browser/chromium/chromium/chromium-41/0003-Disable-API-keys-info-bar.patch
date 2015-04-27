@@ -1,0 +1,14 @@
+diff -ur chromium-41.0.2272.104/chrome/browser/ui/startup/google_api_keys_infobar_delegate.cc chromium-41.0.2272.104.new/chrome/browser/ui/startup/google_api_keys_infobar_delegate.cc
+--- chromium-41.0.2272.104/chrome/browser/ui/startup/google_api_keys_infobar_delegate.cc	2015-03-23 22:12:54.000000000 +0000
++++ chromium-41.0.2272.104.new/chrome/browser/ui/startup/google_api_keys_infobar_delegate.cc	2015-04-25 14:25:57.771735392 +0100
+@@ -18,8 +18,10 @@
+   if (google_apis::HasKeysConfigured())
+     return;
+ 
++#if 0
+   infobar_service->AddInfoBar(infobar_service->CreateConfirmInfoBar(
+       scoped_ptr<ConfirmInfoBarDelegate>(new GoogleApiKeysInfoBarDelegate())));
++#endif
+ }
+ 
+ GoogleApiKeysInfoBarDelegate::GoogleApiKeysInfoBarDelegate()
